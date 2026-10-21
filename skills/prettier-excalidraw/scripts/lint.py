@@ -1,0 +1,167 @@
+#!/usr/bin/env python3
+"""Check a .excalidraw file against the prettier-excalidraw style guide.
+
+Usage:
+    python3 lint.py diagram.excalidraw [--font comic|nunito] [--arrowhead outline|filled] [--json]
+
+Exit code 0 = clean, 1 = violations found. Each finding names the element id so
+it can be located in the JSON. Library icons (groups of >= 3 hand-drawn parts
+without text) are exempt from the roughness rule, because the Excalidraw
+library ships them sketchy on purpose and they still read fine.
+Standard library only.
+"""
+import json, sys
+from collections import Counter
+from exstyle import (ARROWHEADS, FONT_IDS, FONT_NAMES, FONT_SIZES, area, bbox, inside, is_light, overlap)
+
+
+def load(path):
+    d = json.load(open(path))
+    return d, [e for e in d["elements"] if not e.get("isDeleted")]
+
+
+def icon_groups(els):
+    """group ids that look like library icons: >=3 members, none of them text."""
+    members = {}
+    for e in els:
+        for g in e.get("groupIds", []):
+            members.setdefault(g, []).append(e)
+    return {g for g, ms in members.items() if len(ms) >= 3 and not any(m["type"] == "text" for m in ms)}
+
+
+def lint(path, font="comic", arrowhead="outline"):
+    d, els = load(path)
+    want_font = FONT_IDS[font]
+    want_head = ARROWHEADS[arrowhead]
+    icons = icon_groups(els)
+    idx = {e["id"]: i for i, e in enumerate(els)}
+    byid = {e["id"]: e for e in els}
+    out = []
+
+    def add(rule, e, msg, fixable=True):
+        out.append({"rule": rule, "id": e["id"], "type": e["type"], "message": msg, "fixable": fixable})
+
+    filled_rects = [e for e in els if e["type"] == "rectangle"
+                    and e.get("backgroundColor") not in (None, "transparent")]
+
+    for e in els:
+        t = e["type"]
+        in_icon = any(g in icons for g in e.get("groupIds", []))
+        if t in ("rectangle", "ellipse", "diamond", "arrow", "line", "text") and not in_icon:
+            if e.get("roughness", 0) != 0:
+                add("roughness", e, f"roughness={e['roughness']} (want 0, architect)")
+        if t in ("rectangle", "ellipse", "diamond"):
+            if e.get("fillStyle") not in (None, "solid"):
+                add("fill-style", e, f"fillStyle={e['fillStyle']} (want solid)")
+            if t == "rectangle" and e.get("roundness") is not None and not in_icon:
+                add("rounded-corners", e, "rectangle has rounded corners (want sharp)")
+            has_text = any(b.get("type") == "text" for b in e.get("boundElements") or [])
+            if has_text and not is_light(e.get("backgroundColor")):
+                add("dark-fill-text", e, f"dark fill {e['backgroundColor']} behind text", fixable=False)
+            if e.get("strokeStyle") not in (None, "solid", "dotted", "dashed"):
+                add("stroke-style", e, f"strokeStyle={e['strokeStyle']}")
+        if t == "text":
+            if e.get("fontFamily") != want_font:
+                add("font", e, f"fontFamily={FONT_NAMES.get(e.get('fontFamily'), e.get('fontFamily'))} "
+                               f"(want {FONT_NAMES[want_font]})")
+            fs = e.get("fontSize", 20)
+            if round(fs) not in FONT_SIZES or abs(fs - round(fs)) > 0.01:
+                add("font-size", e, f"fontSize={fs:.2f} (want one of {FONT_SIZES})")
+        if t == "arrow":
+            head = e.get("endArrowhead")
+            if head is None and e.get("startArrowhead") is None and not in_icon:
+                add("no-arrowhead", e, "arrow has no arrowhead (is it a connector?)", fixable=False)
+            elif head is not None and head != want_head:
+                add("arrowhead", e, f"endArrowhead={head} (want {want_head})")
+            if e.get("startArrowhead") not in (None, want_head):
+                add("arrowhead", e, f"startArrowhead={e['startArrowhead']} (want {want_head} or none)")
+            if head is not None:
+                ab = bbox(e)
+                for r in filled_rects:
+                    if idx[r["id"]] > idx[e["id"]] and overlap(ab, bbox(r)) and area(bbox(r)) > 2000:
+                        add("arrow-hidden", e, f"arrow drawn before filled box {r['id']} it crosses")
+                        break
+                for key in ("startBinding", "endBinding"):
+                    if not e.get(key):
+                        # endpoint inside some box but not bound -> will not follow the box
+                        px = e["x"] + (e["points"][0][0] if key == "startBinding" else e["points"][-1][0])
+                        py = e["y"] + (e["points"][0][1] if key == "startBinding" else e["points"][-1][1])
+                        for r in filled_rects:
+                            b = bbox(r)
+                            if b[0] - 8 <= px <= b[2] + 8 and b[1] - 8 <= py <= b[3] + 8 and area(b) < 60000:
+                                add("unbound-arrow", e, f"{key[:-7]} touches box {r['id']} but is not bound", fixable=False)
+                                break
+        if t == "image":
+            # proportional to a containing labelled box?
+            ib = bbox(e)
+            conts = [r for r in els if r["type"] == "rectangle" and inside(ib, bbox(r))
+                     and area(bbox(r)) > area(ib) * 1.2 and area(bbox(r)) < 60000]
+            if conts:
+                r = min(conts, key=lambda r: area(bbox(r)))
+                ratio = e["height"] / r["height"]
+                if not 0.55 <= ratio <= 1.0:
+                    add("icon-size", e, f"icon is {ratio:.0%} of box {r['id']} height (want 65-95%)", fixable=False)
+            if e.get("scale") not in (None, [1, 1]):
+                add("icon-stretched", e, f"image scale={e['scale']}", fixable=False)
+
+    # misleading proximity: a data store / cache / queue (red fill in this style) sitting
+    # directly under a non-store box it is not connected to. Readers assume the box
+    # above owns the store before they read any arrow. Peers stacked in a column
+    # (two services, two stores) are fine, so the rule is deliberately narrow.
+    STORE_FILLS = {"#ffc9c9"}
+    byid_box = {e["id"]: e for e in els if e["type"] == "rectangle"
+                and any(b.get("type") == "text" for b in e.get("boundElements") or [])}
+    links = {}
+    for e in els:
+        if e["type"] == "arrow" and e.get("startBinding") and e.get("endBinding"):
+            a, b = e["startBinding"]["elementId"], e["endBinding"]["elementId"]
+            links.setdefault(a, set()).add(b); links.setdefault(b, set()).add(a)
+    for b in byid_box.values():
+        if b.get("backgroundColor") not in STORE_FILLS or not links.get(b["id"]): continue
+        bb = bbox(b)
+        above = [a for a in byid_box.values() if a is not b and area(bbox(a)) < 60000
+                 and a.get("backgroundColor") not in STORE_FILLS
+                 and abs(a["y"] + a["height"] - b["y"]) < 200 and a["y"] + a["height"] <= b["y"] + 1
+                 and min(bbox(a)[2], bb[2]) - max(bbox(a)[0], bb[0]) > 0.5 * b["width"]]
+        if above:
+            a = min(above, key=lambda a: b["y"] - (a["y"] + a["height"]))
+            if a["id"] not in links[b["id"]]:
+                label = lambda r: next((t["text"] for t in els if t.get("containerId") == r["id"]), r["id"]).split("\n")[0]
+                add("misleading-proximity", b, f"'{label(b)}' sits right under '{label(a)}' but is not connected to it; "
+                    f"move the store under the box that uses it", fixable=False)
+
+    # z-order: child rectangle before parent
+    for c in filled_rects:
+        cb = bbox(c)
+        for p in filled_rects:
+            if p is c: continue
+            pb = bbox(p)
+            if inside(cb, pb) and area(pb) > area(cb) * 1.1 and idx[p["id"]] > idx[c["id"]]:
+                add("child-before-parent", c, f"drawn before its container {p['id']}")
+                break
+    return out
+
+
+def main():
+    args = sys.argv[1:]
+    if not args:
+        print(__doc__); sys.exit(2)
+    font = args[args.index("--font") + 1] if "--font" in args else "comic"
+    head = args[args.index("--arrowhead") + 1] if "--arrowhead" in args else "outline"
+    as_json = "--json" in args
+    path = args[0]
+    findings = lint(path, font, head)
+    if as_json:
+        print(json.dumps(findings, indent=1))
+    else:
+        if not findings:
+            print(f"{path}: clean"); sys.exit(0)
+        counts = Counter(f["rule"] for f in findings)
+        print(f"{path}: {len(findings)} findings  " + ", ".join(f"{k}×{v}" for k, v in counts.most_common()))
+        for f in findings:
+            print(f"  [{f['rule']}] {f['type']} {f['id']}: {f['message']}" + ("" if f["fixable"] else "  (manual)"))
+    sys.exit(1 if findings else 0)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,13 @@
+{
+  "name": "prettier-excalidraw",
+  "version": "0.1.0",
+  "description": "Create, restyle and lint Excalidraw architecture diagrams in a clean, opinionated house style: architect roughness, one font, hollow-triangle elbow arrows, light colour-coded boxes, tinted regions, correct z-order and proportionally sized logos.",
+  "author": {
+    "name": "Raihan Islam",
+    "email": "islamraihan009@gmail.com"
+  },
+  "homepage": "https://github.com/Raihan-009/prettier-excalidraw",
+  "repository": "https://github.com/Raihan-009/prettier-excalidraw",
+  "license": "MIT",
+  "keywords": ["excalidraw", "diagram", "architecture", "claude-code", "skill"]
+}

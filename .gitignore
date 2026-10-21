@@ -1,0 +1,21 @@
+# raw reference material and eval workspaces are local only
+/input/
+/prettier-excalidraw-workspace/
+/*-workspace/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+
+# editor / os
+.DS_Store
+.vscode/
+.idea/
+
+# local claude settings
+.claude/settings.local.json
+
+# render scratch
+*.svg.png
+/tmp/

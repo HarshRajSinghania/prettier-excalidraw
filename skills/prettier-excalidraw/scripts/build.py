@@ -1,0 +1,348 @@
+#!/usr/bin/env python3
+"""Build a .excalidraw file from a small JSON spec, in the prettier-excalidraw style.
+
+Usage:
+    python3 build.py spec.json out.excalidraw
+
+The spec describes WHAT is in the diagram (regions, boxes, icons, arrows) and
+WHERE; this script takes care of every stylistic property (font, roughness,
+arrowheads, bindings, bound text, z-order, image embedding) so the result opens
+cleanly in Excalidraw and already conforms to the style guide.
+
+Spec format: see references/spec-format.md (also summarised in SKILL.md).
+Standard library only.
+"""
+import base64, hashlib, json, math, os, random, struct, sys, time
+from exstyle import (ARROW_COLORS, ARROWHEADS, CHAR_W, FILLS, FONT_IDS, LINE_H, STROKE, TINTS, area)
+
+_ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+
+def _id(n=21):
+    return "".join(random.choice(_ALPHABET) for _ in range(n))
+
+
+def _seed():
+    return random.randint(1, 2 ** 31 - 1)
+
+
+_now = int(time.time() * 1000)
+
+
+def _base(etype, x, y, w, h, **kw):
+    e = {
+        "id": kw.pop("id", None) or _id(), "type": etype, "x": float(x), "y": float(y),
+        "width": float(w), "height": float(h), "angle": 0,
+        "strokeColor": STROKE, "backgroundColor": "transparent", "fillStyle": "solid",
+        "strokeWidth": 2, "strokeStyle": "solid", "roughness": 0, "opacity": 100,
+        "groupIds": [], "frameId": None, "roundness": None, "seed": _seed(), "version": 1,
+        "versionNonce": _seed(), "isDeleted": False, "boundElements": [], "updated": _now,
+        "link": None, "locked": False,
+    }
+    e.update(kw)
+    return e
+
+
+def text_size(text, font_id, font_size):
+    lines = text.split("\n")
+    w = max(len(l) for l in lines) * CHAR_W.get(font_id, 0.55) * font_size
+    h = len(lines) * font_size * LINE_H
+    return w, h
+
+
+class Builder:
+    def __init__(self, spec, base_dir="."):
+        self.spec = spec
+        self.base_dir = base_dir
+        self.font = FONT_IDS.get(spec.get("font", "comic"), 8)
+        self.head = ARROWHEADS.get(spec.get("arrowhead", "outline"), "triangle_outline")
+        self.files = {}
+        self.layers = {"region": [], "box": [], "image": [], "text": [], "arrow": []}
+        self.by_id = {}          # spec id -> excalidraw element (the box/region/image)
+        self.warnings = []
+
+    # ---------- public ----------
+    def build(self):
+        for item in self.spec["elements"]:
+            t = item["type"]
+            getattr(self, "add_" + t)(item)
+        return self.to_json()
+
+    # ---------- element builders ----------
+    def add_region(self, it):
+        fill = TINTS.get(it.get("tint", "none"), it.get("tint", "transparent"))
+        e = _base("rectangle", it["x"], it["y"], it["w"], it["h"], id=it.get("id"),
+                  backgroundColor=fill, strokeWidth=it.get("stroke_width", 2))
+        if it.get("dotted"):
+            e["strokeStyle"] = "dotted"; e["opacity"] = 60; e["strokeWidth"] = 1
+        self._register(it, e, "region")
+        if it.get("title"):
+            size = it.get("size", 20)
+            tw, th = text_size(it["title"], self.font, size)
+            pos = it.get("title_pos", "top-left")
+            pad = 16
+            if pos == "top-right":
+                tx = it["x"] + it["w"] - tw - pad
+            elif pos == "top-center":
+                tx = it["x"] + (it["w"] - tw) / 2
+            elif pos == "bottom-center":
+                tx = it["x"] + (it["w"] - tw) / 2
+            else:
+                tx = it["x"] + pad
+            ty = it["y"] + it["h"] + 8 if pos == "bottom-center" else it["y"] + pad
+            self._free_text(it["title"], tx, ty, size, "center" if "center" in pos else "left")
+
+    def add_box(self, it):
+        fill = FILLS.get(it.get("fill", "blue"), it.get("fill", "#a5d8ff"))
+        size = it.get("size", 20)
+        w, h = it.get("w", 240), it.get("h", 70)
+        tw, th = text_size(it.get("label", ""), self.font, size)
+        if th + 16 > h:
+            self.warnings.append(f"box {it.get('id')}: heightened {h} -> {math.ceil(th + 16)} to fit label")
+            h = math.ceil(th + 16)
+        icon_h = 0
+        if it.get("icon"):
+            # Excalidraw centres bound text in the whole box, so the icon strip on the left needs
+            # the same clearance on the right. Shrink the icon down to 55% of the box height
+            # first (the smallest ratio seen in the reference diagrams), then widen the box.
+            icon_h = it.get("icon_h", round(h * 0.8))
+            fit = (w - tw) / 2 - 20
+            if fit < icon_h:
+                icon_h = max(math.ceil(h * 0.56), min(icon_h, round(fit)))
+        strip = (icon_h + 20) if icon_h else 16
+        need_w = tw + 2 * strip
+        if need_w > w:
+            self.warnings.append(f"box {it.get('id')}: widened {w} -> {math.ceil(need_w)} to fit label"
+                                 + (" beside icon" if icon_h else ""))
+            w = math.ceil(need_w)
+        e = _base("rectangle", it["x"], it["y"], w, h, id=it.get("id"), backgroundColor=fill,
+                  strokeWidth=it.get("stroke_width", 2))
+        if it.get("dashed"):
+            e["strokeStyle"] = "dashed"
+        self._register(it, e, "box")
+        if it.get("label"):
+            t = _base("text", it["x"] + (w - tw) / 2, it["y"] + (h - th) / 2, tw, th,
+                      text=it["label"], originalText=it["label"], fontSize=size, fontFamily=self.font,
+                      textAlign="center", verticalAlign="middle", containerId=e["id"], autoResize=True,
+                      lineHeight=LINE_H, backgroundColor=fill)
+            e["boundElements"].append({"type": "text", "id": t["id"]})
+            self.layers["text"].append(t)
+        if icon_h:
+            self._image(it["icon"], it["x"] + 12, it["y"] + (h - icon_h) / 2, None, icon_h, group=e)
+
+    def add_image(self, it):
+        e = self._image(it["src"], it["x"], it["y"], it.get("w"), it.get("h", 120), spec_id=it.get("id"))
+        if it.get("label"):
+            size = it.get("size", 20)
+            tw, th = text_size(it["label"], self.font, size)
+            self._free_text(it["label"], e["x"] + (e["width"] - tw) / 2, e["y"] + e["height"] + 8, size, "center")
+        self._register(it, e, None)
+
+    def add_text(self, it):
+        size = it.get("size", 20)
+        color = ARROW_COLORS.get(it.get("color", "black"), it.get("color", STROKE))
+        self._free_text(it["text"], it["x"], it["y"], size, it.get("align", "left"), color=color)
+
+    def add_arrow(self, it):
+        src, dst = self.by_id.get(it["from"]), self.by_id.get(it["to"])
+        if not src or not dst:
+            raise SystemExit(f"arrow references unknown id: {it['from']} / {it['to']}")
+        color = ARROW_COLORS.get(it.get("color", "black"), it.get("color", STROKE))
+        s_side, d_side = self._pick_sides(src, dst, it.get("from_side"), it.get("to_side"))
+        gap = 5
+        p0 = self._anchor(src, s_side, gap, it.get("from_offset", 0))
+        p1 = self._anchor(dst, d_side, gap, it.get("to_offset", 0))
+        pts = self._route(p0, p1, s_side, d_side)
+        xs = [p[0] for p in pts]; ys = [p[1] for p in pts]
+        rel = [[p[0] - pts[0][0], p[1] - pts[0][1]] for p in pts]
+        e = _base("arrow", pts[0][0], pts[0][1], max(xs) - min(xs), max(ys) - min(ys),
+                  strokeColor=color, strokeWidth=it.get("stroke_width", 2), points=rel,
+                  lastCommittedPoint=None,
+                  startBinding=self._binding(src, s_side, gap),
+                  endBinding=self._binding(dst, d_side, gap),
+                  startArrowhead=self.head if it.get("bidirectional") else None,
+                  endArrowhead=self.head, elbowed=True, fixedSegments=None,
+                  startIsSpecial=None, endIsSpecial=None)
+        if it.get("dashed"):
+            e["strokeStyle"] = "dashed"
+        src["boundElements"].append({"id": e["id"], "type": "arrow"})
+        dst["boundElements"].append({"id": e["id"], "type": "arrow"})
+        self.layers["arrow"].append(e)
+        if it.get("label"):
+            size = it.get("size", 16)
+            tw, th = text_size(it["label"], self.font, size)
+            (mx, my), vertical = self._label_anchor(pts, it.get("label_at", "mid"))
+            if vertical:
+                self._free_text(it["label"], mx + 8, my - th / 2, size, "left", color=color)
+            else:
+                self._free_text(it["label"], mx - tw / 2, my - th - 4, size, "center", color=color)
+
+    # ---------- helpers ----------
+    def _register(self, it, e, layer):
+        if it.get("id"):
+            self.by_id[it["id"]] = e
+        if layer:
+            self.layers[layer].append(e)
+
+    def _free_text(self, text, x, y, size, align, color=STROKE):
+        tw, th = text_size(text, self.font, size)
+        t = _base("text", x, y, tw, th, strokeColor=color, text=text, originalText=text, fontSize=size,
+                  fontFamily=self.font, textAlign=align, verticalAlign="top", containerId=None,
+                  autoResize=True, lineHeight=LINE_H)
+        self.layers["text"].append(t)
+        return t
+
+    def _image(self, src, x, y, w, h, group=None, spec_id=None):
+        path = os.path.join(self.base_dir, src) if not os.path.isabs(src) else src
+        data = open(path, "rb").read()
+        ext = os.path.splitext(path)[1].lower()
+        mime = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".svg": "image/svg+xml",
+                ".gif": "image/gif", ".webp": "image/webp"}.get(ext, "application/octet-stream")
+        fid = hashlib.sha1(data).hexdigest()
+        iw, ih = _image_dims(data, ext)
+        ratio = iw / ih if iw and ih else 1.0
+        if w is None:
+            w = h * ratio
+        elif h is None:
+            h = w / ratio
+        self.files[fid] = {"mimeType": mime, "id": fid,
+                           "dataURL": f"data:{mime};base64," + base64.b64encode(data).decode(),
+                           "created": _now, "lastRetrieved": _now}
+        e = _base("image", x, y, w, h, id=spec_id, strokeColor="transparent", status="saved", fileId=fid,
+                  scale=[1, 1], crop=None)
+        if group is not None:
+            gid = _id()
+            group["groupIds"].append(gid); e["groupIds"].append(gid)
+        self.layers["image"].append(e)
+        return e
+
+    @staticmethod
+    def _pick_sides(a, b, sa, sb):
+        if sa and sb:
+            return sa, sb
+        ax, ay = a["x"] + a["width"] / 2, a["y"] + a["height"] / 2
+        bx, by = b["x"] + b["width"] / 2, b["y"] + b["height"] / 2
+        dx, dy = bx - ax, by - ay
+        if abs(dx) * 1.0 >= abs(dy) * 1.0:
+            auto = ("right", "left") if dx > 0 else ("left", "right")
+        else:
+            auto = ("bottom", "top") if dy > 0 else ("top", "bottom")
+        return sa or auto[0], sb or auto[1]
+
+    @staticmethod
+    def _anchor(e, side, gap, offset):
+        x, y, w, h = e["x"], e["y"], e["width"], e["height"]
+        return {"left": (x - gap, y + h / 2 + offset), "right": (x + w + gap, y + h / 2 + offset),
+                "top": (x + w / 2 + offset, y - gap), "bottom": (x + w / 2 + offset, y + h + gap)}[side]
+
+    @staticmethod
+    def _binding(e, side, gap):
+        fp = {"left": [0, 0.5], "right": [1, 0.5], "top": [0.5, 0], "bottom": [0.5, 1]}[side]
+        return {"elementId": e["id"], "focus": 0, "gap": gap, "fixedPoint": fp, "mode": "orbit"}
+
+    @staticmethod
+    def _route(p0, p1, s_side, d_side):
+        (x0, y0), (x1, y1) = p0, p1
+        horiz = {"left", "right"}
+        detour = 40  # how far a same-side arrow loops out before coming back
+        if s_side in horiz and d_side in horiz:
+            if abs(y0 - y1) < 1 and s_side != d_side:
+                return [(x0, y0), (x1, y1)]
+            if s_side == d_side:   # right->right or left->left: loop out beside both boxes
+                mx = max(x0, x1) + detour if s_side == "right" else min(x0, x1) - detour
+            else:
+                mx = (x0 + x1) / 2
+            return [(x0, y0), (mx, y0), (mx, y1), (x1, y1)]
+        if s_side not in horiz and d_side not in horiz:
+            if abs(x0 - x1) < 1 and s_side != d_side:
+                return [(x0, y0), (x1, y1)]
+            if s_side == d_side:   # bottom->bottom or top->top: loop out below / above both boxes
+                my = max(y0, y1) + detour if s_side == "bottom" else min(y0, y1) - detour
+            else:
+                my = (y0 + y1) / 2
+            return [(x0, y0), (x0, my), (x1, my), (x1, y1)]
+        # mixed: one bend
+        if s_side in horiz:
+            return [(x0, y0), (x1, y0), (x1, y1)]
+        return [(x0, y0), (x0, y1), (x1, y1)]
+
+    @staticmethod
+    def _label_anchor(pts, where="mid"):
+        # midpoint of the longest segment ("mid"), or of the first / last segment
+        segs = list(zip(pts, pts[1:]))
+        if where == "start":
+            segs = segs[:1]
+        elif where == "end":
+            segs = segs[-1:]
+        best, bl, vertical = None, -1, False
+        for a, b in segs:
+            l = math.hypot(b[0] - a[0], b[1] - a[1])
+            if l > bl:
+                bl, best = l, ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
+                vertical = abs(b[0] - a[0]) < abs(b[1] - a[1])
+        return best, vertical
+
+    def to_json(self):
+        # z-order: regions & boxes by area (big first, so parents precede children), then
+        # images, free/bound text, arrows last so nothing hides them.
+        shapes = sorted(self.layers["region"] + self.layers["box"],
+                        key=lambda e: -e["width"] * e["height"])
+        bound = {t["containerId"]: t for t in self.layers["text"] if t.get("containerId")}
+        ordered = []
+        for s in shapes:
+            ordered.append(s)
+            if s["id"] in bound:
+                ordered.append(bound.pop(s["id"]))
+        ordered += self.layers["image"]
+        ordered += [t for t in self.layers["text"] if not t.get("containerId")]
+        ordered += self.layers["arrow"]
+        for i, e in enumerate(ordered):
+            e["index"] = "a" + format(i, "04d")
+        return {"type": "excalidraw", "version": 2, "source": "prettier-excalidraw",
+                "elements": ordered,
+                "appState": {"gridSize": 20, "gridStep": 5, "gridModeEnabled": False,
+                             "viewBackgroundColor": "#ffffff", "lockedMultiSelections": {}},
+                "files": self.files}
+
+
+def _image_dims(data, ext):
+    try:
+        if ext == ".png" and data[:8] == b"\x89PNG\r\n\x1a\n":
+            return struct.unpack(">II", data[16:24])
+        if ext == ".gif":
+            return struct.unpack("<HH", data[6:10])
+        if ext in (".jpg", ".jpeg"):
+            i = 2
+            while i < len(data):
+                if data[i] != 0xFF: i += 1; continue
+                marker = data[i + 1]
+                if marker in (0xC0, 0xC1, 0xC2):
+                    h, w = struct.unpack(">HH", data[i + 5:i + 9]); return w, h
+                i += 2 + struct.unpack(">H", data[i + 2:i + 4])[0]
+        if ext == ".svg":
+            import re
+            s = data.decode("utf-8", "ignore")
+            m = re.search(r'viewBox=["\']\s*[\d.\-]+[\s,]+[\d.\-]+[\s,]+([\d.]+)[\s,]+([\d.]+)', s)
+            if m: return float(m.group(1)), float(m.group(2))
+            mw = re.search(r'\swidth=["\']([\d.]+)', s); mh = re.search(r'\sheight=["\']([\d.]+)', s)
+            if mw and mh: return float(mw.group(1)), float(mh.group(1))
+    except Exception:
+        pass
+    return 1, 1
+
+
+def main():
+    if len(sys.argv) != 3:
+        print(__doc__); sys.exit(2)
+    spec_path, out = sys.argv[1], sys.argv[2]
+    spec = json.load(open(spec_path))
+    b = Builder(spec, base_dir=os.path.dirname(os.path.abspath(spec_path)))
+    doc = b.build()
+    json.dump(doc, open(out, "w"), indent=1)
+    for w in b.warnings:
+        print("warning:", w)
+    print(f"wrote {out}: {len(doc['elements'])} elements, {len(doc['files'])} embedded images")
+
+
+if __name__ == "__main__":
+    main()

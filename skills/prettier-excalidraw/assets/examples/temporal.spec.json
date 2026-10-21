@@ -1,0 +1,222 @@
+{
+ "font": "comic",
+ "arrowhead": "outline",
+ "elements": [
+  {
+   "id": "cluster",
+   "type": "region",
+   "title": "[ temporal server cluster ]",
+   "title_pos": "top-right",
+   "x": 0,
+   "y": 0,
+   "w": 1000,
+   "h": 420,
+   "tint": "blue"
+  },
+  {
+   "id": "workers",
+   "type": "region",
+   "title": "[ worker-script ]",
+   "title_pos": "top-right",
+   "x": 420,
+   "y": 480,
+   "w": 580,
+   "h": 320,
+   "tint": "teal"
+  },
+  {
+   "id": "server",
+   "type": "box",
+   "label": "Temporal Server\n[durable execution engine]",
+   "x": 330,
+   "y": 60,
+   "w": 420,
+   "h": 100,
+   "fill": "yellow",
+   "size": 20
+  },
+  {
+   "id": "history",
+   "type": "box",
+   "label": "history-service",
+   "x": 330,
+   "y": 260,
+   "w": 220,
+   "h": 50,
+   "fill": "purple",
+   "size": 20
+  },
+  {
+   "id": "queue",
+   "type": "box",
+   "label": "task-queue",
+   "x": 620,
+   "y": 260,
+   "w": 220,
+   "h": 50,
+   "fill": "red",
+   "size": 20
+  },
+  {
+   "id": "matching",
+   "type": "box",
+   "label": "matching service",
+   "x": 330,
+   "y": 340,
+   "w": 220,
+   "h": 50,
+   "fill": "green",
+   "size": 20
+  },
+  {
+   "id": "db",
+   "type": "box",
+   "label": "postgres database",
+   "icon": "icons/postgresql.svg",
+   "x": 20,
+   "y": 250,
+   "w": 270,
+   "h": 70,
+   "fill": "blue"
+  },
+  {
+   "id": "worker1",
+   "type": "box",
+   "label": "worker-1\n[business logic]",
+   "x": 460,
+   "y": 560,
+   "w": 240,
+   "h": 120,
+   "fill": "blue"
+  },
+  {
+   "id": "worker2",
+   "type": "box",
+   "label": "worker-2\n[business logic]",
+   "x": 730,
+   "y": 560,
+   "w": 240,
+   "h": 120,
+   "fill": "blue"
+  },
+  {
+   "id": "api",
+   "type": "box",
+   "label": "fast-api",
+   "x": 30,
+   "y": 480,
+   "w": 300,
+   "h": 320,
+   "fill": "green",
+   "size": 28
+  },
+  {
+   "id": "sdk",
+   "type": "box",
+   "label": "sdk runtime",
+   "x": 60,
+   "y": 720,
+   "w": 240,
+   "h": 50,
+   "fill": "yellow",
+   "size": 16
+  },
+  {
+   "id": "client",
+   "type": "box",
+   "label": "user / client",
+   "x": 30,
+   "y": 860,
+   "w": 300,
+   "h": 60,
+   "fill": "grey"
+  },
+  {
+   "id": "k8s",
+   "type": "image",
+   "src": "icons/kubernetes.svg",
+   "x": 1080,
+   "y": 60,
+   "h": 100,
+   "label": "kubernetes"
+  },
+  {
+   "type": "text",
+   "text": "Temporal architecture",
+   "x": 0,
+   "y": 960,
+   "size": 28
+  },
+  {
+   "type": "arrow",
+   "from": "server",
+   "to": "history",
+   "label": "execution state"
+  },
+  {
+   "type": "arrow",
+   "from": "server",
+   "to": "queue",
+   "label": "workflow tasks",
+   "from_side": "right",
+   "to_side": "top"
+  },
+  {
+   "type": "arrow",
+   "from": "history",
+   "to": "db",
+   "label": "inserts/update",
+   "from_side": "left",
+   "to_side": "right"
+  },
+  {
+   "type": "arrow",
+   "from": "matching",
+   "to": "queue",
+   "from_side": "right",
+   "to_side": "bottom"
+  },
+  {
+   "type": "arrow",
+   "from": "queue",
+   "to": "worker1",
+   "label": "gRPC long-poll",
+   "color": "blue"
+  },
+  {
+   "type": "arrow",
+   "from": "queue",
+   "to": "worker2",
+   "label": "gRPC long-poll",
+   "color": "blue",
+   "from_side": "bottom",
+   "to_side": "top",
+   "from_offset": 40
+  },
+  {
+   "type": "arrow",
+   "from": "worker1",
+   "to": "history",
+   "label": "report status",
+   "color": "green",
+   "from_side": "top",
+   "to_side": "bottom"
+  },
+  {
+   "type": "arrow",
+   "from": "client",
+   "to": "api",
+   "bidirectional": true
+  },
+  {
+   "type": "arrow",
+   "from": "api",
+   "to": "server",
+   "label": "start workflow",
+   "color": "red",
+   "from_side": "top",
+   "to_side": "left",
+   "from_offset": -100
+  }
+ ]
+}

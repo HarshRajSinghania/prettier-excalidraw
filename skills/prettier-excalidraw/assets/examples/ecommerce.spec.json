@@ -1,0 +1,38 @@
+{
+ "font": "comic",
+ "arrowhead": "outline",
+ "elements": [
+  {"id": "cluster", "type": "region", "title": "[ kubernetes cluster ]", "title_pos": "top-right",
+   "x": 300, "y": 40, "w": 800, "h": 520, "tint": "teal"},
+  {"id": "data", "type": "region", "title": "[ data services ]", "title_pos": "top-left", "dotted": true,
+   "x": 1280, "y": 40, "w": 300, "h": 350, "tint": "none"},
+
+  {"id": "k8s", "type": "image", "src": "icons/kubernetes.svg", "x": 340, "y": 70, "h": 60, "label": "kubernetes"},
+
+  {"id": "users", "type": "box", "label": "users\n[web / mobile]", "x": 0, "y": 200, "w": 200, "h": 70, "fill": "grey"},
+
+  {"id": "ingress", "type": "box", "label": "nginx ingress", "icon": "icons/nginx.svg",
+   "x": 340, "y": 200, "w": 260, "h": 70, "fill": "green"},
+  {"id": "orders", "type": "box", "label": "orders service", "x": 800, "y": 100, "w": 260, "h": 70, "fill": "blue"},
+  {"id": "catalog", "type": "box", "label": "catalog service", "x": 800, "y": 240, "w": 260, "h": 70, "fill": "blue"},
+  {"id": "worker", "type": "box", "label": "notification worker", "x": 800, "y": 460, "w": 260, "h": 70, "fill": "blue"},
+
+  {"id": "postgres", "type": "box", "label": "postgres", "icon": "icons/postgresql.svg",
+   "x": 1300, "y": 100, "w": 260, "h": 70, "fill": "red"},
+  {"id": "kafka", "type": "box", "label": "kafka", "icon": "icons/apachekafka.svg",
+   "x": 1300, "y": 300, "w": 260, "h": 70, "fill": "red"},
+  {"id": "sendgrid", "type": "box", "label": "sendgrid\n[email api]", "x": 1300, "y": 460, "w": 260, "h": 70, "fill": "orange"},
+
+  {"type": "text", "text": "e-commerce backend", "x": 0, "y": 620, "size": 28},
+  {"type": "text", "text": "green = ingress   blue = services   red = data stores   orange = external saas   grey = users",
+   "x": 0, "y": 670, "size": 16},
+
+  {"type": "arrow", "from": "users", "to": "ingress", "label": "https"},
+  {"type": "arrow", "from": "ingress", "to": "orders", "label": "/orders", "from_side": "right", "to_side": "left", "from_offset": -20, "label_at": "end"},
+  {"type": "arrow", "from": "ingress", "to": "catalog", "label": "/catalog", "from_side": "right", "to_side": "left", "from_offset": 20, "label_at": "end"},
+  {"type": "arrow", "from": "orders", "to": "postgres", "label": "write orders", "from_side": "right", "to_side": "left"},
+  {"type": "arrow", "from": "orders", "to": "kafka", "label": "publish order events", "color": "blue", "from_side": "right", "to_side": "left", "from_offset": 20},
+  {"type": "arrow", "from": "kafka", "to": "worker", "label": "consume order events", "color": "blue", "from_side": "bottom", "to_side": "top"},
+  {"type": "arrow", "from": "worker", "to": "sendgrid", "label": "send email", "from_side": "right", "to_side": "left"}
+ ]
+}

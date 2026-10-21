@@ -1,0 +1,21 @@
+{
+  "name": "prettier-excalidraw",
+  "owner": {
+    "name": "Raihan Islam",
+    "email": "islamraihan009@gmail.com"
+  },
+  "metadata": {
+    "description": "Clean, consistent Excalidraw architecture diagrams from Claude Code.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "prettier-excalidraw",
+      "source": "./",
+      "description": "Create, restyle and lint Excalidraw architecture diagrams in a clean house style.",
+      "version": "0.1.0",
+      "category": "productivity",
+      "keywords": ["excalidraw", "diagram", "architecture"]
+    }
+  ]
+}

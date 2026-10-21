@@ -1,0 +1,266 @@
+{
+ "font": "comic",
+ "arrowhead": "outline",
+ "elements": [
+  {
+   "type": "text",
+   "text": "internal developer platform",
+   "x": 0,
+   "y": 0,
+   "size": 28
+  },
+  {
+   "type": "text",
+   "text": "[ three layers - each one builds on the layer below ]",
+   "x": 0,
+   "y": 40,
+   "size": 16
+  },
+  {
+   "id": "dx",
+   "type": "region",
+   "x": 0,
+   "y": 100,
+   "w": 1480,
+   "h": 200,
+   "tint": "blue",
+   "title": "[ developer experience ]"
+  },
+  {
+   "type": "text",
+   "text": "golden paths & self-service",
+   "x": 1002,
+   "y": 118,
+   "size": 16
+  },
+  {
+   "id": "portal",
+   "type": "box",
+   "x": 40,
+   "y": 180,
+   "w": 320,
+   "h": 70,
+   "label": "web portal\n[backstage]",
+   "fill": "cyan",
+   "icon": "icons/backstage.svg"
+  },
+  {
+   "id": "docs",
+   "type": "box",
+   "x": 400,
+   "y": 180,
+   "w": 320,
+   "h": 70,
+   "label": "docs\n[techdocs & guides]",
+   "fill": "cyan"
+  },
+  {
+   "id": "templates",
+   "type": "box",
+   "x": 760,
+   "y": 180,
+   "w": 320,
+   "h": 70,
+   "label": "project templates\n[golden paths]",
+   "fill": "cyan"
+  },
+  {
+   "id": "cli",
+   "type": "box",
+   "x": 1120,
+   "y": 180,
+   "w": 320,
+   "h": 70,
+   "label": "cli\n[idp command line]",
+   "fill": "yellow"
+  },
+  {
+   "id": "svc",
+   "type": "region",
+   "x": 0,
+   "y": 420,
+   "w": 1480,
+   "h": 200,
+   "tint": "purple",
+   "title": "[ platform services ]"
+  },
+  {
+   "type": "text",
+   "text": "shared capabilities, one api",
+   "x": 994,
+   "y": 438,
+   "size": 16
+  },
+  {
+   "id": "cicd",
+   "type": "box",
+   "x": 40,
+   "y": 500,
+   "w": 320,
+   "h": 70,
+   "label": "ci/cd\n[argo]",
+   "fill": "purple",
+   "icon": "icons/argo.svg"
+  },
+  {
+   "id": "obs",
+   "type": "box",
+   "x": 400,
+   "y": 500,
+   "w": 320,
+   "h": 70,
+   "label": "observability\n[grafana]",
+   "fill": "orange",
+   "icon": "icons/grafana.svg"
+  },
+  {
+   "id": "iam",
+   "type": "box",
+   "x": 760,
+   "y": 500,
+   "w": 320,
+   "h": 70,
+   "label": "identity & access\n[keycloak]",
+   "fill": "purple",
+   "icon": "icons/keycloak.svg",
+   "icon_h": 42
+  },
+  {
+   "id": "secrets",
+   "type": "box",
+   "x": 1120,
+   "y": 500,
+   "w": 320,
+   "h": 70,
+   "label": "secrets manager\n[vault]",
+   "fill": "purple",
+   "icon": "icons/vault.svg"
+  },
+  {
+   "id": "infra",
+   "type": "region",
+   "x": 0,
+   "y": 740,
+   "w": 1480,
+   "h": 200,
+   "tint": "teal",
+   "title": "[ infrastructure ]"
+  },
+  {
+   "type": "text",
+   "text": "provisioned by the platform team",
+   "x": 958,
+   "y": 758,
+   "size": 16
+  },
+  {
+   "id": "k8s",
+   "type": "box",
+   "x": 40,
+   "y": 820,
+   "w": 320,
+   "h": 70,
+   "label": "kubernetes\n[compute]",
+   "fill": "teal",
+   "icon": "icons/kubernetes.svg"
+  },
+  {
+   "id": "s3",
+   "type": "box",
+   "x": 400,
+   "y": 820,
+   "w": 320,
+   "h": 70,
+   "label": "object storage\n[minio / s3]",
+   "fill": "red",
+   "icon": "icons/minio.svg"
+  },
+  {
+   "id": "mq",
+   "type": "box",
+   "x": 760,
+   "y": 820,
+   "w": 320,
+   "h": 70,
+   "label": "message queue\n[rabbitmq]",
+   "fill": "red",
+   "icon": "icons/rabbitmq.svg"
+  },
+  {
+   "id": "pg",
+   "type": "box",
+   "x": 1120,
+   "y": 820,
+   "w": 320,
+   "h": 70,
+   "label": "postgres\n[relational db]",
+   "fill": "red",
+   "icon": "icons/postgresql.svg"
+  },
+  {
+   "type": "arrow",
+   "from": "dx",
+   "to": "svc",
+   "from_side": "bottom",
+   "to_side": "top",
+   "label": "builds on",
+   "color": "blue"
+  },
+  {
+   "type": "arrow",
+   "from": "portal",
+   "to": "cicd",
+   "from_side": "bottom",
+   "to_side": "top",
+   "label": "trigger pipelines"
+  },
+  {
+   "type": "arrow",
+   "from": "cli",
+   "to": "secrets",
+   "from_side": "bottom",
+   "to_side": "top",
+   "label": "fetch dev secrets"
+  },
+  {
+   "type": "arrow",
+   "from": "svc",
+   "to": "infra",
+   "from_side": "bottom",
+   "to_side": "top",
+   "label": "builds on",
+   "color": "blue"
+  },
+  {
+   "type": "arrow",
+   "from": "cicd",
+   "to": "k8s",
+   "from_side": "bottom",
+   "to_side": "top",
+   "label": "deploy [gitops]"
+  },
+  {
+   "type": "arrow",
+   "from": "obs",
+   "to": "s3",
+   "from_side": "bottom",
+   "to_side": "top",
+   "label": "logs & metrics"
+  },
+  {
+   "type": "arrow",
+   "from": "secrets",
+   "to": "pg",
+   "from_side": "bottom",
+   "to_side": "top",
+   "label": "inject db credentials"
+  },
+  {
+   "type": "text",
+   "text": "colour key: cyan = interfaces \u00b7 yellow = cli \u00b7 purple = control plane \u00b7 orange = observability \u00b7 teal = kubernetes \u00b7 red = storage & messaging",
+   "x": 0,
+   "y": 980,
+   "size": 16
+  }
+ ]
+}

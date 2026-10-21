@@ -1,0 +1,59 @@
+{
+ "skill_name": "prettier-excalidraw",
+ "evals": [
+  {
+   "id": 0,
+   "prompt": "Draw an Excalidraw architecture diagram for our e-commerce backend and save it as ecommerce.excalidraw. Users hit an nginx ingress running on Kubernetes, which routes to an orders service and a catalog service. The orders service writes to Postgres and publishes events to Kafka. A notification worker consumes from Kafka and sends emails through SendGrid. Group the Kubernetes workloads so it's obvious what runs in the cluster, and make it look clean and professional, not sketchy.",
+   "expected_output": "A valid .excalidraw file with a k8s region containing ingress, orders, catalog, notification worker; Postgres, Kafka, SendGrid outside or inside as appropriate; clean style (roughness 0, one font, consistent arrowheads, light fills), arrows last in z-order, ideally logos.",
+   "files": [],
+   "assertions": [
+    "ecommerce.excalidraw exists and is valid Excalidraw JSON",
+    "all required components labelled (ingress, orders, catalog, postgres, kafka, notification, sendgrid)",
+    "kubernetes workloads grouped in one container (ingress, orders, catalog, notification)",
+    "single font family across all text",
+    "all arrowheads the same triangle style",
+    "roughness 0 on all non-icon elements (not sketchy)",
+    "no arrow hidden behind a filled box (arrows later in z-order)",
+    "containers drawn before their children",
+    "light colour-coded fills, 2-8 distinct, none dark behind text",
+    "at least one embedded logo image"
+   ]
+  },
+  {
+   "id": 1,
+   "prompt": "I have an Excalidraw diagram at inputs/idp-flow.excalidraw that I drew quickly and it looks inconsistent: some arrows have different arrowheads, a couple of text labels are in a different font, and some shapes look sketchy. Please clean it up so everything is consistent and professional-looking, without moving anything around, and save the result as idp-flow-clean.excalidraw.",
+   "expected_output": "Same diagram with all text in one font, all arrowheads the same minimal triangle, roughness 0 on shapes/arrows/text (library icons may stay), solid fills, element positions unchanged.",
+   "files": [
+    "inputs/idp-flow.excalidraw"
+   ],
+   "assertions": [
+    "idp-flow-clean.excalidraw exists and is valid",
+    "same element count as input (nothing dropped or added)",
+    "no shape moved (same ids, same x/y; labels may be re-measured)",
+    "single font family across all text",
+    "all arrowheads the same triangle style",
+    "roughness 0 on all non-icon elements",
+    "no hachure / cross-hatch fills on shapes",
+    "notes.md written"
+   ]
+  },
+  {
+   "id": 2,
+   "prompt": "create a layered internal developer platform diagram in excalidraw, save as platform.excalidraw. three layers top to bottom: 'developer experience' (web portal, CLI, docs, project templates), 'platform services' (CI/CD, secrets manager, observability, identity & access), and 'infrastructure' (kubernetes, postgres, object storage, message queue). each layer should visibly build on the one below it and the layers should be color coded so you can tell them apart at a glance. add some logos where it makes sense.",
+   "expected_output": "A layered diagram: three full-width stacked layers, each a tinted region or strip with its component boxes inside, consistent fills per layer, clean style, arrows or stacking showing dependency, some logo icons.",
+   "files": [],
+   "assertions": [
+    "platform.excalidraw exists and is valid",
+    "all 12 components labelled",
+    "three full-width layers stacked vertically, each containing >= 3 labelled boxes",
+    "layers visually distinct (different tint or component fill per layer)",
+    "single font family across all text",
+    "roughness 0 on all non-icon elements",
+    "no arrow hidden behind a filled box",
+    "containers drawn before their children",
+    "light fills, none dark behind text",
+    "at least one embedded logo image"
+   ]
+  }
+ ]
+}

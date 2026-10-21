@@ -140,7 +140,7 @@ def lint(path, font="comic", arrowhead="outline"):
             seg = (min(a[0], b[0]), min(a[1], b[1]), max(a[0], b[0]), max(a[1], b[1]))
             for t in free_text:
                 tb = bbox(t)
-                inner = (tb[0] + 2, tb[1] + 2, tb[2] - 2, tb[3] - 2)
+                inner = (tb[0] + 1, tb[1] + 1, tb[2] - 1, tb[3] - 1)
                 if overlap(seg, inner) and not (seg[2] - seg[0] < 1 and seg[3] - seg[1] < 1):
                     add("arrow-through-text", e, f"arrow runs through text '{t['text'][:30]}' ({t['id']}); "
                         f"offset the arrow or move the text", fixable=False)
@@ -148,6 +148,53 @@ def lint(path, font="comic", arrowhead="outline"):
             else:
                 continue
             break
+
+    # arrow through an unrelated box: a connector segment crossing a small filled box it is
+    # not bound to. Crossing a big region is normal; crossing a component box is not.
+    small_boxes = [r for r in filled_rects if area(bbox(r)) < 60000]
+    connectors = [e for e in els if e["type"] == "arrow" and e.get("endArrowhead")]
+    seg_list = []   # (arrow, (x0,y0,x1,y1)) for every segment, reused below
+    for e in connectors:
+        pts = [(e["x"] + p[0], e["y"] + p[1]) for p in e.get("points", [])]
+        bound = {b.get("elementId") for b in (e.get("startBinding"), e.get("endBinding")) if b}
+        for a, b in zip(pts, pts[1:]):
+            seg = (min(a[0], b[0]), min(a[1], b[1]), max(a[0], b[0]), max(a[1], b[1]))
+            seg_list.append((e, seg))
+            hit = next((r for r in small_boxes if r["id"] not in bound
+                        and overlap(seg, (bbox(r)[0] + 3, bbox(r)[1] + 3, bbox(r)[2] - 3, bbox(r)[3] - 3))), None)
+            if hit:
+                add("arrow-through-box", e, f"arrow runs through box {hit['id']} it is not connected to; "
+                    f"route around it (from_side / to_side / bend)", fixable=False)
+                break
+
+    # two connectors sharing a line: collinear segments that overlap for more than 20 px
+    seen = set()
+    for i, (e1, s1) in enumerate(seg_list):
+        for e2, s2 in seg_list[i + 1:]:
+            if e1 is e2 or (e1["id"], e2["id"]) in seen: continue
+            h1, h2 = s1[3] - s1[1] < 1, s2[3] - s2[1] < 1
+            v1, v2 = s1[2] - s1[0] < 1, s2[2] - s2[0] < 1
+            if h1 and h2 and abs(s1[1] - s2[1]) < 3 and min(s1[2], s2[2]) - max(s1[0], s2[0]) > 20 \
+               or v1 and v2 and abs(s1[0] - s2[0]) < 3 and min(s1[3], s2[3]) - max(s1[1], s2[1]) > 20:
+                seen.add((e1["id"], e2["id"]))
+                add("arrow-overlap", e1, f"shares a line with arrow {e2['id']}; give one of them a different "
+                    f"bend or offset", fixable=False)
+
+    # overlapping text: two text elements whose boxes intersect
+    texts = [t for t in els if t["type"] == "text"]
+    for i, t1 in enumerate(texts):
+        b1 = bbox(t1)
+        for t2 in texts[i + 1:]:
+            b2 = bbox(t2)
+            if overlap((b1[0] + 2, b1[1] + 2, b1[2] - 2, b1[3] - 2), (b2[0] + 2, b2[1] + 2, b2[2] - 2, b2[3] - 2)):
+                add("text-overlap", t1, f"'{t1['text'][:25]}' overlaps '{t2['text'][:25]}' ({t2['id']})", fixable=False)
+
+    # free text lying over a component box it does not belong to (a label that drifted)
+    for t in free_text:
+        tb = bbox(t); inner = (tb[0] + 2, tb[1] + 2, tb[2] - 2, tb[3] - 2)
+        hit = next((r for r in small_boxes if overlap(inner, bbox(r))), None)
+        if hit:
+            add("text-over-box", t, f"'{t['text'][:25]}' lies over box {hit['id']}; move the text or the arrow it labels", fixable=False)
 
     # z-order: child rectangle before parent
     for c in filled_rects:

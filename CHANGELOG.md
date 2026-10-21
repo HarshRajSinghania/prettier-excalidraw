@@ -13,7 +13,11 @@ All notable changes to this project are documented here. The format follows
 - `SKILL.md`: gap-filling step - ask about store owners, edge direction,
   boundaries and callbacks before drawing, or state the assumption.
 - `lint.py`: `misleading-proximity` - a store sitting under a box it has no
-  arrow to; `arrow-through-text` - a connector crossing a title or caption.
+  arrow to; `arrow-through-text`, `arrow-through-box`, `arrow-overlap`,
+  `text-overlap`, `text-over-box` - layout collisions the eye catches but the
+  old rules did not.
+- `build.py`: `bend` on arrows to choose where the middle segment runs, so two
+  arrows between the same rows do not share a line.
 - `preview.py`: `--square` for quick-look thumbnails; exact text widths.
 
 ### Changed

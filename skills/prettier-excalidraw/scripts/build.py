@@ -165,7 +165,7 @@ class Builder:
         gap = 5
         p0 = self._anchor(src, s_side, gap, it.get("from_offset", 0))
         p1 = self._anchor(dst, d_side, gap, it.get("to_offset", 0))
-        pts = self._route(p0, p1, s_side, d_side)
+        pts = self._route(p0, p1, s_side, d_side, it.get("bend"))
         xs = [p[0] for p in pts]; ys = [p[1] for p in pts]
         rel = [[p[0] - pts[0][0], p[1] - pts[0][1]] for p in pts]
         e = _base("arrow", pts[0][0], pts[0][1], max(xs) - min(xs), max(ys) - min(ys),
@@ -188,7 +188,7 @@ class Builder:
             if vertical:
                 self._free_text(it["label"], mx + 8, my - th / 2, size, "left", color=color)
             else:
-                self._free_text(it["label"], mx - tw / 2, my - th - 4, size, "center", color=color)
+                self._free_text(it["label"], mx - tw / 2, my - th - 8, size, "center", color=color)
 
     # ---------- helpers ----------
     def _register(self, it, e, layer):
@@ -254,22 +254,29 @@ class Builder:
         return {"elementId": e["id"], "focus": 0, "gap": gap, "fixedPoint": fp, "mode": "orbit"}
 
     @staticmethod
-    def _route(p0, p1, s_side, d_side):
+    def _route(p0, p1, s_side, d_side, bend=None):
+        """Orthogonal route. `bend` fixes the coordinate of the middle segment (the x of
+        the vertical run for left/right routes, the y of the horizontal run for
+        top/bottom routes) so two arrows between the same rows do not share a line."""
         (x0, y0), (x1, y1) = p0, p1
         horiz = {"left", "right"}
         detour = 40  # how far a same-side arrow loops out before coming back
         if s_side in horiz and d_side in horiz:
-            if abs(y0 - y1) < 1 and s_side != d_side:
+            if abs(y0 - y1) < 1 and s_side != d_side and bend is None:
                 return [(x0, y0), (x1, y1)]
-            if s_side == d_side:   # right->right or left->left: loop out beside both boxes
+            if bend is not None:
+                mx = bend
+            elif s_side == d_side:   # right->right or left->left: loop out beside both boxes
                 mx = max(x0, x1) + detour if s_side == "right" else min(x0, x1) - detour
             else:
                 mx = (x0 + x1) / 2
             return [(x0, y0), (mx, y0), (mx, y1), (x1, y1)]
         if s_side not in horiz and d_side not in horiz:
-            if abs(x0 - x1) < 1 and s_side != d_side:
+            if abs(x0 - x1) < 1 and s_side != d_side and bend is None:
                 return [(x0, y0), (x1, y1)]
-            if s_side == d_side:   # bottom->bottom or top->top: loop out below / above both boxes
+            if bend is not None:
+                my = bend
+            elif s_side == d_side:   # bottom->bottom or top->top: loop out below / above both boxes
                 my = max(y0, y1) + detour if s_side == "bottom" else min(y0, y1) - detour
             else:
                 my = (y0 + y1) / 2

@@ -72,6 +72,10 @@ below. Can be an arrow target when it has an `id`.
 - Routing is orthogonal (elbowed): straight when aligned, otherwise one or two bends
   through the midpoint. Arrows are bound to both ends so they follow the boxes in
   Excalidraw.
+- `bend`: coordinate of the middle segment - the y of the horizontal run for
+  top/bottom routes, the x of the vertical run for left/right routes. Use it when two
+  arrows between the same rows would otherwise share a line (`lint.py` reports
+  `arrow-overlap`).
 - `label` sits above the longest horizontal segment or right of the longest vertical
   one; `label_at: "start" | "end"` moves it to the first / last segment.
 - `color`: `black` (default) | `red` | `green` | `blue` | hex. The label takes the

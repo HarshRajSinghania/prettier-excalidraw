@@ -28,7 +28,7 @@
    "id": "server",
    "type": "box",
    "label": "Temporal Server\n[durable execution engine]",
-   "x": 420,
+   "x": 480,
    "y": 60,
    "w": 420,
    "h": 100,
@@ -75,7 +75,7 @@
    "icon": "icons/postgresql.svg",
    "x": 20,
    "y": 250,
-   "w": 360,
+   "w": 300,
    "h": 70,
    "fill": "blue"
   },
@@ -154,7 +154,7 @@
    "label": "execution state",
    "from_side": "bottom",
    "to_side": "top",
-   "from_offset": -100
+   "from_offset": -160
   },
   {
    "type": "arrow",
@@ -163,13 +163,13 @@
    "label": "workflow tasks",
    "from_side": "bottom",
    "to_side": "top",
-   "from_offset": 180
+   "from_offset": 120
   },
   {
    "type": "arrow",
    "from": "history",
    "to": "db",
-   "label": "inserts/update",
+   "label": "save",
    "from_side": "left",
    "to_side": "right"
   },
@@ -185,7 +185,11 @@
    "from": "queue",
    "to": "worker1",
    "label": "gRPC long-poll",
-   "color": "blue"
+   "color": "blue",
+   "from_side": "bottom",
+   "to_side": "top",
+   "bend": 470,
+   "from_offset": -40
   },
   {
    "type": "arrow",
@@ -203,8 +207,9 @@
    "to": "history",
    "label": "report status",
    "color": "green",
-   "from_side": "top",
-   "to_side": "bottom"
+   "from_side": "left",
+   "to_side": "left",
+   "bend": 400
   },
   {
    "type": "arrow",
@@ -220,7 +225,8 @@
    "color": "red",
    "from_side": "top",
    "to_side": "left",
-   "from_offset": -100
+   "from_offset": 170,
+   "label_at": "end"
   }
  ]
 }

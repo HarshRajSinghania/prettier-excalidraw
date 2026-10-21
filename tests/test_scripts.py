@@ -194,6 +194,14 @@ class TestLintAndFix(unittest.TestCase):
         self.assertTrue(all(e["fontFamily"] == 6 for e in doc["elements"] if e["type"] == "text"))
 
 
+class TestLintCli(unittest.TestCase):
+    def test_allow_manual_exit_code(self):
+        ref = os.path.join(EXAMPLES, "layered-architecture.excalidraw")
+        self.assertEqual(run("lint.py", ref).returncode, 1, "reference has manual findings")
+        self.assertEqual(run("lint.py", ref, "--allow-manual").returncode, 0)
+        self.assertEqual(run("lint.py", os.path.join(EXAMPLES, "payment.excalidraw")).returncode, 0)
+
+
 class TestPreview(unittest.TestCase):
     def test_svg_written(self):
         with tempfile.TemporaryDirectory() as td:

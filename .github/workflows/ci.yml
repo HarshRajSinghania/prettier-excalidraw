@@ -20,5 +20,12 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Lint shipped examples
         working-directory: skills/prettier-excalidraw/scripts
+        # generated examples must be fully clean; the hand-drawn reference diagram may
+        # carry manual findings (they are the point of keeping it), so those only warn
         run: |
-          for f in ../assets/examples/*.excalidraw; do python lint.py "$f"; done
+          for f in ../assets/examples/*.excalidraw; do
+            case "$f" in
+              *layered-architecture*) python lint.py "$f" --allow-manual ;;
+              *)                      python lint.py "$f" ;;
+            esac
+          done

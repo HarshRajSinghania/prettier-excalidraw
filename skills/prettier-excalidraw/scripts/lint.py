@@ -2,9 +2,12 @@
 """Check a .excalidraw file against the prettier-excalidraw style guide.
 
 Usage:
-    python3 lint.py diagram.excalidraw [--font comic|nunito] [--arrowhead outline|filled] [--json]
+    python3 lint.py diagram.excalidraw [--font comic|nunito] [--arrowhead outline|filled]
+                                       [--json] [--allow-manual]
 
-Exit code 0 = clean, 1 = violations found. Each finding names the element id so
+Exit code 0 = clean, 1 = violations found. With --allow-manual, findings that need a
+human (marked "(manual)") are still printed but do not affect the exit code, which is
+what a CI gate on hand-drawn reference diagrams wants. Each finding names the element id so
 it can be located in the JSON. Library icons (groups of >= 3 hand-drawn parts
 without text) are exempt from the roughness rule, because the Excalidraw
 library ships them sketchy on purpose and they still read fine.
@@ -215,8 +218,10 @@ def main():
     font = args[args.index("--font") + 1] if "--font" in args else "comic"
     head = args[args.index("--arrowhead") + 1] if "--arrowhead" in args else "outline"
     as_json = "--json" in args
+    allow_manual = "--allow-manual" in args
     path = args[0]
     findings = lint(path, font, head)
+    blocking = [f for f in findings if f["fixable"]] if allow_manual else findings
     if as_json:
         print(json.dumps(findings, indent=1))
     else:
@@ -226,7 +231,7 @@ def main():
         print(f"{path}: {len(findings)} findings  " + ", ".join(f"{k}×{v}" for k, v in counts.most_common()))
         for f in findings:
             print(f"  [{f['rule']}] {f['type']} {f['id']}: {f['message']}" + ("" if f["fixable"] else "  (manual)"))
-    sys.exit(1 if findings else 0)
+    sys.exit(1 if blocking else 0)
 
 
 if __name__ == "__main__":

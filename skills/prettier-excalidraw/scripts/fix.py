@@ -31,7 +31,10 @@ def remeasure(t, byid):
     if c is not None:
         t["x"] = c["x"] + (c["width"] - w) / 2
         t["y"] = c["y"] + (c["height"] - h) / 2
-    elif t.get("textAlign") == "center":
+    elif t.get("textAlign") == "center" and abs(w - t["width"]) < 0.5 * t["width"]:
+        # keep a centred caption centred, unless the size change is so large that the old
+        # centre is meaningless (a 6 px label growing to 16 px); then keep its left edge so
+        # it stays with the thing it was next to
         t["x"] += (t["width"] - w) / 2
     t["width"], t["height"] = w, h
 

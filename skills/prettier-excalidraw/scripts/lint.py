@@ -130,6 +130,25 @@ def lint(path, font="comic", arrowhead="outline"):
                 add("misleading-proximity", b, f"'{label(b)}' sits right under '{label(a)}' but is not connected to it; "
                     f"move the store under the box that uses it", fixable=False)
 
+    # arrow crossing text: a connector segment running through a free text element
+    # (region titles, captions) makes both unreadable
+    free_text = [t for t in els if t["type"] == "text" and not t.get("containerId")]
+    for e in els:
+        if e["type"] != "arrow" or not e.get("endArrowhead"): continue
+        pts = [(e["x"] + p[0], e["y"] + p[1]) for p in e.get("points", [])]
+        for a, b in zip(pts, pts[1:]):
+            seg = (min(a[0], b[0]), min(a[1], b[1]), max(a[0], b[0]), max(a[1], b[1]))
+            for t in free_text:
+                tb = bbox(t)
+                inner = (tb[0] + 2, tb[1] + 2, tb[2] - 2, tb[3] - 2)
+                if overlap(seg, inner) and not (seg[2] - seg[0] < 1 and seg[3] - seg[1] < 1):
+                    add("arrow-through-text", e, f"arrow runs through text '{t['text'][:30]}' ({t['id']}); "
+                        f"offset the arrow or move the text", fixable=False)
+                    break
+            else:
+                continue
+            break
+
     # z-order: child rectangle before parent
     for c in filled_rects:
         cb = bbox(c)

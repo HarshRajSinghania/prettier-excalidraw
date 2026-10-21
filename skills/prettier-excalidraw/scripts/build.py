@@ -106,8 +106,9 @@ class Builder:
         w, h = it.get("w", 240), it.get("h", 70)
         tw, th = text_size(it.get("label", ""), self.font, size)
         if th + 16 > h:
-            self.warnings.append(f"box {it.get('id')}: heightened {h} -> {math.ceil(th + 16)} to fit label")
-            h = math.ceil(th + 16)
+            new_h = int(math.ceil((th + 16) / 20.0) * 20)   # stay on the 20 px grid
+            self.warnings.append(f"box {it.get('id')}: heightened {h} -> {new_h} to fit label")
+            h = new_h
         icon_h = 0
         if it.get("icon"):
             # Excalidraw centres bound text in the whole box, so the icon strip on the left needs

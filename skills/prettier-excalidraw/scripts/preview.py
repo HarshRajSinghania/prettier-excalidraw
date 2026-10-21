@@ -17,6 +17,8 @@ FONT_CSS = {8: "'Comic Shanns', 'Comic Mono', monospace", 6: "Nunito, sans-serif
 
 
 def main():
+    if len(sys.argv) < 3:
+        print(__doc__); sys.exit(2)
     src, out = sys.argv[1], sys.argv[2]
     square = "--square" in sys.argv
     d = json.load(open(src))

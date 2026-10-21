@@ -110,4 +110,5 @@ arrow. Snap to a 20 px grid.
 | unbound-arrow | endpoint touches a box but is not bound | manual |
 | icon-size | icon outside 55–100 % of its box height | manual |
 | icon-stretched | image scale ≠ [1, 1] | manual |
+| arrow-through-text | a connector segment crosses a free text element (title, caption) | manual |
 | misleading-proximity | a store (red fill) sits directly under a non-store box it has no arrow to | manual |

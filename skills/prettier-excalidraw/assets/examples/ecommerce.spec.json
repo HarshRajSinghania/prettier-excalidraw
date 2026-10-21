@@ -144,8 +144,7 @@
    "label": "/orders",
    "from_side": "right",
    "to_side": "left",
-   "from_offset": -20,
-   "label_at": "end"
+   "from_offset": -20
   },
   {
    "type": "arrow",
@@ -154,8 +153,7 @@
    "label": "/catalog",
    "from_side": "right",
    "to_side": "left",
-   "from_offset": 20,
-   "label_at": "end"
+   "from_offset": 20
   },
   {
    "type": "arrow",

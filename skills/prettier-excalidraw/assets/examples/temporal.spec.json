@@ -17,7 +17,7 @@
    "id": "workers",
    "type": "region",
    "title": "[ worker-script ]",
-   "title_pos": "top-right",
+   "title_pos": "bottom-center",
    "x": 420,
    "y": 480,
    "w": 580,
@@ -151,15 +151,19 @@
    "type": "arrow",
    "from": "server",
    "to": "history",
-   "label": "execution state"
+   "label": "execution state",
+   "from_side": "bottom",
+   "to_side": "top",
+   "from_offset": -100
   },
   {
    "type": "arrow",
    "from": "server",
    "to": "queue",
    "label": "workflow tasks",
-   "from_side": "right",
-   "to_side": "top"
+   "from_side": "bottom",
+   "to_side": "top",
+   "from_offset": 180
   },
   {
    "type": "arrow",

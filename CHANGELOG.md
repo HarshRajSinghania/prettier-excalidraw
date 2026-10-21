@@ -13,7 +13,7 @@ All notable changes to this project are documented here. The format follows
 - `SKILL.md`: gap-filling step - ask about store owners, edge direction,
   boundaries and callbacks before drawing, or state the assumption.
 - `lint.py`: `misleading-proximity` - a store sitting under a box it has no
-  arrow to.
+  arrow to; `arrow-through-text` - a connector crossing a title or caption.
 - `preview.py`: `--square` for quick-look thumbnails; exact text widths.
 
 ### Changed
@@ -22,7 +22,13 @@ All notable changes to this project are documented here. The format follows
 - `build.py` widens boxes to the next multiple of 20 px instead of an arbitrary
   width; same-side arrows (bottom→bottom, right→right) loop out 40 px instead of
   running along the box edges.
-- Example specs widened so every icon stays at full size.
+- `fix.py` keeps the left edge of a caption whose size changes drastically, so
+  it stays beside the icon it belonged to.
+- `build.py` rounds heightened boxes to the 20 px grid; `preview.py` prints
+  usage instead of a traceback.
+- Chrome recipe listed first for PNG previews, with the device scale factor.
+- Example specs widened so every icon stays at full size; arrows re-routed so
+  none crosses a region title.
 
 ### Planned
 - Description optimisation for more reliable triggering.

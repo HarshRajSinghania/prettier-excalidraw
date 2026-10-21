@@ -86,9 +86,16 @@ order the spec by hand.
 See `assets/examples/temporal.spec.json` and the `.excalidraw` it builds.
 
 ## Rendering a preview to PNG
-`preview.py` writes SVG. To look at it:
-- macOS quick-look: `python3 preview.py d.excalidraw d.svg --square && qlmanage -t -s 2400 -o . d.svg`
-  (`--square` pads the canvas; without it quick-look crops wide diagrams).
-- Chrome, any OS, exact size: read `width`/`height` from the SVG's first line, then
-  `chrome --headless --screenshot=d.png --window-size=W,H d.svg`
-  (macOS binary: `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`).
+`preview.py` writes SVG. To look at it, best first:
+- Chrome, any OS, exact size and crisp at 2x. Read `width`/`height` from the SVG's
+  first line, then:
+  ```
+  chrome --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 \
+         --screenshot=d.png --window-size=W,H "file://$PWD/d.svg"
+  ```
+  `--window-size` is in CSS px (the SVG size); the scale factor doubles the pixels.
+  Without `--force-device-scale-factor` on a 2x display the drawing fills a quarter
+  of the image. macOS binary: `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`.
+  It prints harmless CVDisplayLink warnings.
+- macOS quick-look, no Chrome: `python3 preview.py d.excalidraw d.svg --square && qlmanage -t -s 2400 -o . d.svg`
+  (`--square` pads to a square; without it quick-look crops wide diagrams).

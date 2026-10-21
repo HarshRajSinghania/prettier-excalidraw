@@ -212,7 +212,9 @@
    "to": "cicd",
    "from_side": "bottom",
    "to_side": "top",
-   "label": "trigger pipelines"
+   "label": "trigger pipelines",
+   "from_offset": 100,
+   "to_offset": 100
   },
   {
    "type": "arrow",
@@ -237,7 +239,9 @@
    "to": "k8s",
    "from_side": "bottom",
    "to_side": "top",
-   "label": "deploy [gitops]"
+   "label": "deploy [gitops]",
+   "from_offset": 100,
+   "to_offset": 100
   },
   {
    "type": "arrow",

@@ -84,10 +84,10 @@ that directory (they import each other) or set `PYTHONPATH` to it.
    ```bash
    cd <skill>/scripts
    python3 build.py spec.json out.excalidraw      # writes the file, prints size warnings
-   python3 preview.py out.excalidraw out.svg --square   # SVG render for a visual check
-   # macOS quick-look (needs --square or it crops wide diagrams):
-   #   qlmanage -t -s 2400 -o . out.svg      -> out.svg.png, then view it
-   # any OS with Chrome (exact aspect ratio): see references/spec-format.md "Rendering"
+   python3 preview.py out.excalidraw out.svg            # SVG render for a visual check
+   # to PNG: headless Chrome gives an exact-size image (recipe in
+   # references/spec-format.md "Rendering"); fallback on macOS without Chrome:
+   #   python3 preview.py out.excalidraw out.svg --square && qlmanage -t -s 2400 -o . out.svg
    python3 lint.py out.excalidraw
    ```
    Actually look at the preview. Things to catch: a box whose nearest neighbour above

@@ -19,3 +19,6 @@ __pycache__/
 # render scratch
 *.svg.png
 /tmp/
+
+# temp command files written by the skill-creator trigger harness
+/.claude/commands/

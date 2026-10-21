@@ -91,6 +91,14 @@ class Builder:
                 tx = it["x"] + pad
             ty = it["y"] + it["h"] + 8 if pos == "bottom-center" else it["y"] + pad
             self._free_text(it["title"], tx, ty, size, "center" if "center" in pos else "left")
+        if it.get("subtitle"):
+            # secondary note in the opposite top corner from the title, size 16
+            size = it.get("subtitle_size", 16)
+            tw, th = text_size(it["subtitle"], self.font, size)
+            pad = 16
+            right = it.get("title_pos", "top-left") != "top-right"
+            tx = it["x"] + it["w"] - tw - pad if right else it["x"] + pad
+            self._free_text(it["subtitle"], tx, it["y"] + pad + 2, size, "left")
 
     def add_box(self, it):
         fill = FILLS.get(it.get("fill", "blue"), it.get("fill", "#a5d8ff"))
@@ -109,12 +117,16 @@ class Builder:
             fit = (w - tw) / 2 - 20
             if fit < icon_h:
                 icon_h = max(math.ceil(h * 0.56), min(icon_h, round(fit)))
+                if icon_h < 0.65 * h:
+                    self.warnings.append(f"box {it.get('id')}: icon shrunk to {icon_h / h:.0%} of box height "
+                                         f"to clear the label; widen the box or shorten the label")
         strip = (icon_h + 20) if icon_h else 16
         need_w = tw + 2 * strip
         if need_w > w:
-            self.warnings.append(f"box {it.get('id')}: widened {w} -> {math.ceil(need_w)} to fit label"
+            new_w = int(math.ceil(need_w / 20.0) * 20)   # stay on the 20 px grid
+            self.warnings.append(f"box {it.get('id')}: widened {w} -> {new_w} to fit label"
                                  + (" beside icon" if icon_h else ""))
-            w = math.ceil(need_w)
+            w = new_w
         e = _base("rectangle", it["x"], it["y"], w, h, id=it.get("id"), backgroundColor=fill,
                   strokeWidth=it.get("stroke_width", 2))
         if it.get("dashed"):

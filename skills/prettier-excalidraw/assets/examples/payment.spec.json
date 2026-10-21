@@ -1,21 +1,146 @@
 {
-  "font": "comic",
-  "arrowhead": "outline",
-  "elements": [
-    {"id":"backend","type":"region","title":"[ payment backend ]","title_pos":"top-right","x":400,"y":0,"w":1020,"h":440,"tint":"blue"},
-    {"id":"app","type":"box","label":"mobile app\n[ios / android]","x":40,"y":120,"w":240,"h":80,"fill":"grey"},
-    {"id":"gw","type":"box","label":"api gateway","x":460,"y":125,"w":240,"h":70,"fill":"green"},
-    {"id":"pay","type":"box","label":"payment service","x":860,"y":125,"w":260,"h":70,"fill":"blue"},
-    {"id":"cache","type":"box","label":"redis\n[idempotency keys]","icon":"icons/redis.svg","x":720,"y":300,"w":320,"h":80,"fill":"red"},
-    {"id":"db","type":"box","label":"postgres\n[payments, ledger]","icon":"icons/postgresql.svg","x":1080,"y":300,"w":320,"h":80,"fill":"red"},
-    {"id":"stripe","type":"box","label":"stripe\n[external psp]","icon":"icons/stripe.svg","x":1540,"y":120,"w":260,"h":80,"fill":"orange"},
-    {"type":"arrow","from":"app","to":"gw","label":"https / json"},
-    {"type":"arrow","from":"gw","to":"pay","label":"route /payments"},
-    {"type":"arrow","from":"pay","to":"stripe","label":"charge","color":"green"},
-    {"type":"arrow","from":"stripe","to":"pay","label":"webhook","color":"blue","from_side":"top","to_side":"top","from_offset":-40,"to_offset":60},
-    {"type":"arrow","from":"pay","to":"cache","label":"get/set idempotency key","from_side":"bottom","to_side":"top","from_offset":-60,"to_offset":40,"label_at":"end"},
-    {"type":"arrow","from":"pay","to":"db","label":"writes payments, ledger","from_side":"bottom","to_side":"top","from_offset":60,"to_offset":-40,"label_at":"end"},
-    {"type":"text","text":"payment flow","x":40,"y":500,"size":28},
-    {"type":"text","text":"grey = client · green = gateway · blue = service · red = data · orange = external","x":40,"y":550,"size":16}
-  ]
+ "font": "comic",
+ "arrowhead": "outline",
+ "elements": [
+  {
+   "id": "backend",
+   "type": "region",
+   "title": "[ payment backend ]",
+   "title_pos": "top-right",
+   "x": 400,
+   "y": 0,
+   "w": 1200,
+   "h": 440,
+   "tint": "blue"
+  },
+  {
+   "id": "app",
+   "type": "box",
+   "label": "mobile app\n[ios / android]",
+   "x": 40,
+   "y": 120,
+   "w": 240,
+   "h": 80,
+   "fill": "grey"
+  },
+  {
+   "id": "gw",
+   "type": "box",
+   "label": "api gateway",
+   "x": 460,
+   "y": 125,
+   "w": 240,
+   "h": 70,
+   "fill": "green"
+  },
+  {
+   "id": "pay",
+   "type": "box",
+   "label": "payment service",
+   "x": 860,
+   "y": 125,
+   "w": 260,
+   "h": 70,
+   "fill": "blue"
+  },
+  {
+   "id": "cache",
+   "type": "box",
+   "label": "redis\n[idempotency keys]",
+   "icon": "icons/redis.svg",
+   "x": 720,
+   "y": 300,
+   "w": 400,
+   "h": 80,
+   "fill": "red"
+  },
+  {
+   "id": "db",
+   "type": "box",
+   "label": "postgres\n[payments, ledger]",
+   "icon": "icons/postgresql.svg",
+   "x": 1160,
+   "y": 300,
+   "w": 400,
+   "h": 80,
+   "fill": "red"
+  },
+  {
+   "id": "stripe",
+   "type": "box",
+   "label": "stripe\n[external psp]",
+   "icon": "icons/stripe.svg",
+   "x": 1720,
+   "y": 120,
+   "w": 320,
+   "h": 80,
+   "fill": "orange"
+  },
+  {
+   "type": "arrow",
+   "from": "app",
+   "to": "gw",
+   "label": "https / json"
+  },
+  {
+   "type": "arrow",
+   "from": "gw",
+   "to": "pay",
+   "label": "route /payments"
+  },
+  {
+   "type": "arrow",
+   "from": "pay",
+   "to": "stripe",
+   "label": "charge",
+   "color": "green"
+  },
+  {
+   "type": "arrow",
+   "from": "stripe",
+   "to": "pay",
+   "label": "webhook",
+   "color": "blue",
+   "from_side": "top",
+   "to_side": "top",
+   "from_offset": -40,
+   "to_offset": 60
+  },
+  {
+   "type": "arrow",
+   "from": "pay",
+   "to": "cache",
+   "label": "get/set idempotency key",
+   "from_side": "bottom",
+   "to_side": "top",
+   "from_offset": -60,
+   "to_offset": 40,
+   "label_at": "end"
+  },
+  {
+   "type": "arrow",
+   "from": "pay",
+   "to": "db",
+   "label": "writes payments, ledger",
+   "from_side": "bottom",
+   "to_side": "top",
+   "from_offset": 60,
+   "to_offset": -40,
+   "label_at": "end"
+  },
+  {
+   "type": "text",
+   "text": "payment flow",
+   "x": 40,
+   "y": 500,
+   "size": 28
+  },
+  {
+   "type": "text",
+   "text": "grey = client \u00b7 green = gateway \u00b7 blue = service \u00b7 red = data \u00b7 orange = external",
+   "x": 40,
+   "y": 550,
+   "size": 16
+  }
+ ]
 }

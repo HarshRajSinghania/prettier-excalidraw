@@ -22,6 +22,8 @@ origin top-left, y grows downward. Lay things out on a 20 px grid.
   tints; `none` = transparent with a border, the most common choice)
 - `title_pos`: `top-left` (default) | `top-right` | `top-center` | `bottom-center`
   (below the region). Title is free text, size 20 unless `size` given.
+- `subtitle`: a short note (size 16) in the top corner opposite the title, e.g.
+  `"subtitle": "provisioned by the platform team"`.
 - `dotted: true` → dotted 1 px border at 60 % opacity, for a loose logical group.
 - `stroke_width`: default 2.
 

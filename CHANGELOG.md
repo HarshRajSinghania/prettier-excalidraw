@@ -6,11 +6,25 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- `build.py`: `subtitle` on regions (note in the corner opposite the title);
+  warning when an icon has to shrink below 65 % of its box height.
+- `fix.py`: prints `check label:` for any text whose size changed by 4 px or more.
+- `SKILL.md`: gap-filling step - ask about store owners, edge direction,
+  boundaries and callbacks before drawing, or state the assumption.
+- `lint.py`: `misleading-proximity` - a store sitting under a box it has no
+  arrow to.
+- `preview.py`: `--square` for quick-look thumbnails; exact text widths.
+
+### Changed
+- `fix.py` re-measures text boxes and re-centres bound labels after a font or
+  size change, so Excalidraw no longer shows stale, off-centre labels.
+- `build.py` widens boxes to the next multiple of 20 px instead of an arbitrary
+  width; same-side arrows (bottom→bottom, right→right) loop out 40 px instead of
+  running along the box edges.
+- Example specs widened so every icon stays at full size.
+
 ### Planned
-- `fix.py`: re-measure text width/height and re-centre bound labels after a font
-  size snap.
-- `build.py`: warn when an icon is shrunk below 65 % of its box; optional second
-  (right-aligned) region title.
 - Description optimisation for more reliable triggering.
 
 ## [0.1.0] - 2026-10-22

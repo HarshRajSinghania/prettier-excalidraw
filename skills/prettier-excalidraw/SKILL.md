@@ -109,10 +109,13 @@ python3 lint.py in.excalidraw                 # what is wrong, with element ids
 python3 fix.py in.excalidraw out.excalidraw   # mechanical fixes, positions untouched
 python3 lint.py out.excalidraw                # what remains needs a human
 ```
-`fix.py` changes font, snaps font sizes to 16/20/28, sets roughness 0, solid fills,
-sharp corners, the arrowhead, moves arrows to the end of the z-order and moves a child
-box after its container. It leaves grouped library icons alone (they are hand-drawn on
-purpose) and never moves anything. Findings marked `(manual)` - dark fill behind text,
+`fix.py` changes font, snaps font sizes to 16/20/28 (re-measuring the text box and
+re-centring bound labels), sets roughness 0, solid fills, sharp corners, the arrowhead,
+moves arrows to the end of the z-order and moves a child box after its container. It
+leaves grouped library icons alone (they are hand-drawn on purpose) and never moves a
+shape. It prints `check label:` for any text whose size changed by 4 px or more,
+because a 6 px label that becomes 16 px can now collide with its neighbours; look at
+those in the preview. Findings marked `(manual)` - dark fill behind text,
 unbound arrow endpoints, icon too small for its box - need judgement: edit the JSON
 directly (the finding gives the element id) or tell the user what to change.
 

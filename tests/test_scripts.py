@@ -158,6 +158,36 @@ class TestLintAndFix(unittest.TestCase):
         p = self._save(doc)
         self.assertNotIn("roughness", {f["rule"] for f in lint.lint(p)})
 
+    def test_fix_remeasures_and_recentres_labels(self):
+        doc = copy.deepcopy(self.doc)
+        byid = {e["id"]: e for e in doc["elements"]}
+        label = next(e for e in doc["elements"] if e["type"] == "text" and e.get("containerId"))
+        box = byid[label["containerId"]]
+        label["fontSize"] = 6.0; label["width"] = 10; label["height"] = 5; label["x"] = box["x"]; label["y"] = box["y"]
+        fix.fix(doc)
+        self.assertEqual(label["fontSize"], 16)
+        exp_w = max(len(l) for l in label["text"].split("\n")) * exstyle.CHAR_W[8] * 16
+        self.assertAlmostEqual(label["width"], exp_w, places=3)
+        self.assertAlmostEqual(label["x"], box["x"] + (box["width"] - exp_w) / 2, places=3)
+        self.assertTrue(any(label["id"] in b for b in fix.fix.big_changes))
+
+    def test_build_warns_on_icon_shrink_and_keeps_grid(self):
+        spec = {"elements": [{"id": "b", "type": "box", "label": "a very long label that needs room",
+                              "icon": os.path.join(EXAMPLES, "icons", "redis.svg"), "x": 0, "y": 0, "w": 200, "h": 70}]}
+        b = build.Builder(spec, base_dir=EXAMPLES)
+        doc = b.build()
+        box = next(e for e in doc["elements"] if e["type"] == "rectangle")
+        self.assertEqual(box["width"] % 20, 0, "widened boxes stay on the 20px grid")
+        self.assertTrue(any("icon shrunk" in w for w in b.warnings))
+
+    def test_region_subtitle(self):
+        spec = {"elements": [{"id": "r", "type": "region", "title": "[ a ]", "subtitle": "note", "x": 0, "y": 0, "w": 600, "h": 200}]}
+        doc = build.Builder(spec).build()
+        texts = [e for e in doc["elements"] if e["type"] == "text"]
+        self.assertEqual({t["text"] for t in texts}, {"[ a ]", "note"})
+        note = next(t for t in texts if t["text"] == "note")
+        self.assertGreater(note["x"], 300, "subtitle sits in the opposite corner")
+
     def test_fix_respects_font_option(self):
         doc = copy.deepcopy(self.doc)
         fix.fix(doc, font="nunito")

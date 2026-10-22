@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Planned
+- Description optimisation for more reliable triggering.
+
+## [0.2.0] - 2026-10-22
+
 ### Added
 - `build.py`: `subtitle` on regions (note in the corner opposite the title);
   warning when an icon has to shrink below 65 % of its box height.
@@ -33,9 +38,6 @@ All notable changes to this project are documented here. The format follows
 - Chrome recipe listed first for PNG previews, with the device scale factor.
 - Example specs widened so every icon stays at full size; arrows re-routed so
   none crosses a region title.
-
-### Planned
-- Description optimisation for more reliable triggering.
 
 ## [0.1.0] - 2026-10-22
 

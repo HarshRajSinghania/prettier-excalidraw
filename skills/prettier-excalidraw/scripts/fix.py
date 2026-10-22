@@ -11,7 +11,7 @@ or text, so the diagram keeps its meaning; run lint.py afterwards to see what
 still needs a human (dark fills, icon sizes, unbound arrows).
 Standard library only.
 """
-import json, sys
+import json, random, sys
 from exstyle import ARROWHEADS, CHAR_W, FONT_IDS, FONT_SIZES, LINE_H, area, bbox, inside
 from lint import icon_groups
 
@@ -103,6 +103,7 @@ def fix(doc, font="comic", arrowhead="outline"):
     for i, e in enumerate(els):
         e["index"] = "a" + format(i, "04d")
         e["version"] = e.get("version", 1) + 1
+        e["versionNonce"] = random.randint(1, 2 ** 31 - 1)
     doc["elements"] = els
     fix.big_changes = big_changes
     return changed

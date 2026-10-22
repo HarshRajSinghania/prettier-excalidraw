@@ -1,0 +1,22 @@
+[
+  {"query": "can you draw me an excalidraw diagram of our checkout flow? browser -> cloudfront -> alb -> checkout-api (ecs) -> dynamodb, and there's an sqs queue between checkout-api and a fulfillment lambda. save it as checkout.excalidraw in ./docs", "should_trigger": true},
+  {"query": "I have ~/diagrams/platform-overview.excalidraw that three different people have edited and now the arrows are all different styles and half the boxes are rounded. can you make it consistent without moving anything", "should_trigger": true},
+  {"query": "need an architecture diagram for the README of my side project (fastapi + celery + redis + postgres, all in docker compose). excalidraw format please so I can tweak it later", "should_trigger": true},
+  {"query": "make this diagram prettier: /Users/me/Desktop/k8s-ingress.excalidraw. it looks sketchy and the logos are huge", "should_trigger": true},
+  {"query": "layered diagram in excalidraw pls: top 'clients' (web, ios, android), middle 'bff + graphql gateway', bottom 'domain services' (users, billing, search) each with its own db. colour the layers", "should_trigger": true},
+  {"query": "does docs/arch/data-pipeline.excalidraw follow our diagram style? we agreed on no hand-drawn look and hollow arrowheads but i'm not sure everyone stuck to it", "should_trigger": true},
+  {"query": "sketch the request path through our edge: cloudflare -> nginx -> envoy sidecar -> service. i'll drop it into the wiki as an excalidraw file", "should_trigger": true},
+  {"query": "turn this into an excalidraw diagram:\n\nvpc 10.0.0.0/16\n  public subnet: nat gw, bastion\n  private subnet: eks nodes, rds (multi-az)\n  s3 via gateway endpoint\npeering to shared-services vpc 10.1.0.0/16", "should_trigger": true},
+  {"query": "we're presenting the new event-driven design on thursday. draw the kafka topics, the three consumers and the outbox pattern in excalidraw, with proper logos, clean enough for slides", "should_trigger": true},
+  {"query": "quick one: excalidraw diagram, mobile app -> api gateway -> payments svc -> stripe, plus a postgres db and a redis cache", "should_trigger": true},
+  {"query": "generate a mermaid sequence diagram for the oauth2 authorization code flow between the browser, our app and keycloak", "should_trigger": false},
+  {"query": "draw.io keeps mangling my svg export. the file is infra.drawio in the repo root, can you figure out why the arrows disappear when i export", "should_trigger": false},
+  {"query": "write a python script that parses a .excalidraw json file and prints how many elements of each type it contains", "should_trigger": false},
+  {"query": "i want an architecture diagram as a PNG for the pitch deck, something glossy with gradients and 3d isometric servers like the AWS marketing pages", "should_trigger": false},
+  {"query": "set up prettier and eslint in this nextjs repo with the airbnb config and add a pre-commit hook", "should_trigger": false},
+  {"query": "explain the difference between a layered architecture and hexagonal architecture, with pros and cons for a mid-size django monolith", "should_trigger": false},
+  {"query": "our excalidraw self-hosted instance (docker, behind traefik) returns 502 after the last upgrade. logs are in /var/log/excalidraw. help me debug", "should_trigger": false},
+  {"query": "convert docs/architecture.excalidraw to a plantuml file so it can live in the asciidoc build", "should_trigger": false},
+  {"query": "make a graphviz dot file of the import dependencies between the python packages in src/", "should_trigger": false},
+  {"query": "design a color palette and typography system for our internal design system in figma - we want something clean, light fills, consistent arrows in our product UI", "should_trigger": false}
+]

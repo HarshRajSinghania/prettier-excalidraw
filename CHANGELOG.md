@@ -7,7 +7,7 @@ All notable changes to this project are documented here. The format follows
 ## [Unreleased]
 
 ### Planned
-- Description optimisation for more reliable triggering.
+See [ROADMAP.md](ROADMAP.md).
 
 ## [0.2.0] - 2026-10-22
 

@@ -144,7 +144,7 @@ class TestLintAndFix(unittest.TestCase):
         # a store under the box that uses it is fine
         doc = copy.deepcopy(self.doc)
         byid = {e["id"]: e for e in doc["elements"]}
-        byid["history"]["backgroundColor"] = "#ffc9c9"      # history is under server, which feeds it
+        byid["history"]["backgroundColor"] = "#ffc9c9"    # history is under server, which feeds it
         p = self._save(doc, "ok.excalidraw")
         self.assertEqual([f for f in lint.lint(p) if f["rule"] == "misleading-proximity"], [])
 
@@ -192,6 +192,17 @@ class TestLintAndFix(unittest.TestCase):
         doc = copy.deepcopy(self.doc)
         fix.fix(doc, font="nunito")
         self.assertTrue(all(e["fontFamily"] == 6 for e in doc["elements"] if e["type"] == "text"))
+
+
+    def test_version_nonce_refreshed_on_fix(self):
+        doc = copy.deepcopy(self.doc)
+        old_nonces = {e["id"]: e.get("versionNonce") for e in doc["elements"]}
+        fix.fix(doc)
+        for e in doc["elements"]:
+            self.assertNotEqual(e.get("versionNonce"), old_nonces[e["id"]])
+            self.assertIsInstance(e["versionNonce"], int)
+            self.assertGreaterEqual(e["versionNonce"], 1)
+            self.assertLess(e["versionNonce"], 2**31)
 
 
 class TestLintCli(unittest.TestCase):
